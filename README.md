@@ -1,5 +1,3 @@
----
-
 ```markdown
 # Book Recommendations Web App
 
@@ -82,9 +80,3 @@ This project is licensed under the MIT License.
 
 Feel free to open issues or submit pull requests!
 ```
-
----
-
-**Let me know if you want further customization or more technical details!**
-
----
