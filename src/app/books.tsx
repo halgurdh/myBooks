@@ -80,7 +80,7 @@ export default function Books({ books, loading, page, totalPages, setPage }: Boo
           Previous
         </button>
         <span className="text-sm">
-          Page {page} of {totalPages || 1}
+          Page {page}
         </span>
         <button
           onClick={() => setPage(page + 1)}
