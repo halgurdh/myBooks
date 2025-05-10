@@ -3,12 +3,14 @@
 import React from 'react';
 
 type Book = {
-  key: string;
+  id: string;
   title: string;
-  author_name?: string[];
-  first_publish_year?: number;
-  cover_i?: number;
+  authors?: string[];
+  publishedYear?: number;
+  cover?: string;
   rating?: number | null;
+  categories?: string[];
+  description?: string;
 };
 
 type BooksProps = {
@@ -31,22 +33,26 @@ export default function Books({ books, loading, page, totalPages, setPage }: Boo
       <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {books.map((book) => (
           <li
-            key={book.key}
+            key={book.id}
             className="flex flex-col bg-white border rounded-lg shadow-sm p-4"
           >
             <img
-              src={`https://covers.openlibrary.org/b/id/${book.cover_i}-M.jpg`}
+              src={
+                book.cover ||
+                'https://books.google.com/googlebooks/images/no_cover_thumb.gif'
+              }
               alt={book.title}
-              className="w-full h-48 object-cover rounded-md mb-4"
+              className="w-full h-48 object-cover rounded-md mb-4 bg-gray-100"
+              loading="lazy"
             />
             <h2 className="text-lg font-medium mb-1">{book.title}</h2>
             <p className="text-sm mb-1">
               <span className="font-semibold">Author(s): </span>
-              {book.author_name?.join(", ") || "Unknown"}
+              {book.authors?.join(', ') || 'Unknown'}
             </p>
             <p className="text-sm mb-1">
-              <span className="font-semibold">First Published: </span>
-              {book.first_publish_year || "N/A"}
+              <span className="font-semibold">Published: </span>
+              {book.publishedYear || 'N/A'}
             </p>
             <p className="text-sm mb-2">
               <span className="font-semibold">Rating: </span>
@@ -57,12 +63,12 @@ export default function Books({ books, loading, page, totalPages, setPage }: Boo
               )}
             </p>
             <a
-              href={`https://openlibrary.org${book.key}`}
+              href={`https://books.google.com/books?id=${book.id}`}
               target="_blank"
               rel="noopener noreferrer"
               className="mt-auto text-blue-600 hover:underline text-sm"
             >
-              View on Open Library
+              View on Google Books
             </a>
           </li>
         ))}
@@ -80,7 +86,7 @@ export default function Books({ books, loading, page, totalPages, setPage }: Boo
           Previous
         </button>
         <span className="text-sm">
-          Page {page}
+          Page {page} of {totalPages}
         </span>
         <button
           onClick={() => setPage(page + 1)}
