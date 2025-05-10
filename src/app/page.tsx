@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Books from './books';
 
 type Book = {
   key: string;
@@ -31,7 +32,6 @@ const fetchBooks = async (
     `https://openlibrary.org/search.json?q=${query}&limit=${PAGE_SIZE}&page=${page}`
   );
   const data = await res.json();
-  // Only books with covers
   const booksWithCovers: Book[] = data.docs
     .filter((b: Book) => b.cover_i && b.key)
     .map((b: any) => ({
@@ -64,15 +64,12 @@ export default function Page() {
   useEffect(() => {
     const doSearch = async () => {
       setLoading(true);
-      // 1. Get synonyms
       const synonyms = await fetchSynonyms(lastQuery);
       const terms = Array.from(new Set([lastQuery, ...synonyms])).slice(0, 5);
       setUsedTerms(terms);
 
-      // 2. Fetch books
       const { books, numFound } = await fetchBooks(terms, page);
 
-      // 3. Fetch ratings for each book (in parallel)
       const booksWithRatings = await Promise.all(
         books.map(async (book) => {
           if (!book.work_key) return { ...book, rating: null };
@@ -81,7 +78,6 @@ export default function Page() {
         })
       );
 
-      // 4. Sort by rating (highest first, unrated last)
       booksWithRatings.sort((a, b) => {
         if (a.rating == null && b.rating == null) return 0;
         if (a.rating == null) return 1;
@@ -96,7 +92,7 @@ export default function Page() {
     doSearch();
   }, [lastQuery, page]);
 
-  const handleSearch = async (e: React.FormEvent) => {
+  const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setPage(1);
     setLastQuery(input);
@@ -131,80 +127,13 @@ export default function Page() {
         </div>
       )}
 
-      {loading ? (
-        <div className="text-center text-gray-500">Loading recommendations...</div>
-      ) : books.length === 0 ? (
-        <div className="text-center text-gray-500">No recommendations found.</div>
-      ) : (
-        <>
-          <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {books.map((book) => (
-              <li
-                key={book.key}
-                className="flex flex-col bg-white border rounded-lg shadow-sm p-4"
-              >
-                <img
-                  src={`https://covers.openlibrary.org/b/id/${book.cover_i}-M.jpg`}
-                  alt={book.title}
-                  className="w-full h-48 object-cover rounded-md mb-4"
-                />
-                <h2 className="text-lg font-medium mb-1">{book.title}</h2>
-                <p className="text-sm mb-1">
-                  <span className="font-semibold">Author(s): </span>
-                  {book.author_name?.join(", ") || "Unknown"}
-                </p>
-                <p className="text-sm mb-1">
-                  <span className="font-semibold">First Published: </span>
-                  {book.first_publish_year || "N/A"}
-                </p>
-                <p className="text-sm mb-2">
-                  <span className="font-semibold">Rating: </span>
-                  {book.rating != null ? (
-                    <span className="text-yellow-600 font-bold">{book.rating.toFixed(2)} / 5</span>
-                  ) : (
-                    <span className="text-gray-400">No rating</span>
-                  )}
-                </p>
-                <a
-                  href={`https://openlibrary.org${book.key}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-auto text-blue-600 hover:underline text-sm"
-                >
-                  View on Open Library
-                </a>
-              </li>
-            ))}
-          </ul>
-          <div className="flex justify-center items-center gap-4 mt-8">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className={`px-4 py-2 rounded-lg border ${
-                page === 1
-                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                  : 'bg-blue-600 text-white hover:bg-blue-700'
-              }`}
-            >
-              Previous
-            </button>
-            <span className="text-sm">
-              Page {page} of {totalPages || 1}
-            </span>
-            <button
-              onClick={() => setPage((p) => p + 1)}
-              disabled={page === totalPages || books.length < PAGE_SIZE}
-              className={`px-4 py-2 rounded-lg border ${
-                page === totalPages || books.length < PAGE_SIZE
-                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                  : 'bg-blue-600 text-white hover:bg-blue-700'
-              }`}
-            >
-              Next
-            </button>
-          </div>
-        </>
-      )}
+      <Books
+        books={books}
+        loading={loading}
+        page={page}
+        totalPages={totalPages}
+        setPage={setPage}
+      />
     </main>
   );
 }
